@@ -1,0 +1,24 @@
+<RCC>
+  <qresource prefix="pic">
+    <file>fisc.png</file>
+    <file>inconchat.png</file>
+    <file>iconfisc.png</file>
+    <file>butt.png</file>
+    <file>Picture3.png</file>
+    <file>grey-rounded-rectangle-gery-rounded-rectangle.svg</file>
+    <file>Picture1.png</file>
+    <file>sigma.png</file>
+    <file>sig_ma.png</file>
+    <file>background.jpg</file>
+    <file>info.png</file>
+    <file>save_button.png</file>
+    <file>sound_button.webp</file>
+    <file>report.png</file>
+    <file>report_background.jpg</file>
+    <file>text_report.png</file>
+    <file>text_type.png</file>
+    <file>more_info.png</file>
+    <file>Empty.png</file>
+    <file>photo-1557683311-eac922347aa1.jpg</file>
+  </qresource>
+</RCC>
