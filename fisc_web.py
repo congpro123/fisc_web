@@ -16,6 +16,49 @@ st.set_page_config(
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 ADMIN_ENDPOINT = "https://congpro.pythonanywhere.com/api/reports"
 
+# —————— BANNER "Add to Home Screen" cho iOS ——————
+html("""
+<style>
+  #a2hs-banner {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    padding: 12px;
+    text-align: center;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.2);
+    font-size: 14px;
+    z-index: 9999;
+  }
+  #a2hs-banner button {
+    margin-left: 8px;
+    padding: 6px 12px;
+    border: none;
+    background: #007bff;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+</style>
+<div id="a2hs-banner">
+  📱 Để cài app lên Màn hình chính trên iOS, nhấn nút “Thêm vào MH chính”
+  <button id="a2hs-button">Thêm ngay</button>
+</div>
+<script>
+  const isIos = /iP(hone|od|ad)/.test(navigator.userAgent);
+  const isInStandalone = ('standalone' in window) && window.standalone;
+  if (isIos && !isInStandalone && !localStorage.getItem('a2hs_shown')) {
+    document.getElementById('a2hs-banner').style.display = 'block';
+    localStorage.setItem('a2hs_shown', 'true');
+  }
+  document.getElementById('a2hs-button').onclick = () => {
+    alert('Nhấn nút Share (hình ô vuông mũi tên lên) → Chọn "Add to Home Screen"');
+  };
+</script>
+""", height=150)
+
 # —————————————— Khởi tạo session state ——————————————
 for key, default in {
     "result": "",
