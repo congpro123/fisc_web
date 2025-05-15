@@ -13,7 +13,7 @@ st.set_page_config(
 )
 
 # —————————————— CẤU HÌNH ——————————————
-openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 ADMIN_ENDPOINT = "https://congpro.pythonanywhere.com/api/reports"
 
 # —————————————— Khởi tạo session state ——————————————
