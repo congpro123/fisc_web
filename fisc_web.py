@@ -45,14 +45,19 @@ if st.session_state.show_instructions:
 
     else:  # Android
         st.subheader("🛈 Tải và Cài APK (Android)")
-        apk_url = "http://raw.githubusercontent.com/congpro123/fisc_web/main/FISC.apk"  # đổi thành URL thật
+        apk_url = "https://your-domain.com/download/app.apk"  # đổi thành URL thật
+
         # Nút tải APK
         st.download_button(
             label="⬇️ Tải APK về máy",
             data=requests.get(apk_url).content,
-            file_name="app.apk",
+            file_name="FISC.apk",
             mime="application/vnd.android.package-archive"
         )
+
+        # Hướng dẫn cài đặt sau khi tải
+        st.write("Sau khi tải xong, bấm vào file **FISC.apk** để tiến hành cài app về máy.")
+
         # Tạo QR code cho APK
         import qrcode
         from io import BytesIO
