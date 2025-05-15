@@ -12,6 +12,16 @@ st.set_page_config(
     layout="wide"
 )
 
+st.markdown(
+    """
+<link rel="manifest" href="/static/manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="/static/iconfisc.png">
+    """,
+    unsafe_allow_html=True
+)
+
 # —————————————— CẤU HÌNH ——————————————
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 ADMIN_ENDPOINT = "https://congpro.pythonanywhere.com/api/reports"
