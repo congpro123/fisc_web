@@ -45,7 +45,7 @@ if st.session_state.show_instructions:
 
     else:  # Android
         st.subheader("🛈 Tải và Cài APK (Android)")
-        apk_url = "https://your-domain.com/download/app.apk"  # đổi thành URL thật
+        apk_url = "http://raw.githubusercontent.com/congpro123/fisc_web/main/FISC.apk"  # đổi thành URL thật
 
         # Nút tải APK
         st.download_button(
