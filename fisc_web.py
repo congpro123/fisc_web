@@ -28,7 +28,7 @@ if "show_instructions" not in st.session_state:
     st.session_state.show_instructions = False
 
 # Nút “Thêm vào MH chính”
-if st.button("➕ Thêm vào Màn hình chính"):
+if st.button("Cài phần mềm về điện thoại"):
     st.session_state.show_instructions = True
 
 # Nếu đang hiển thị hướng dẫn
