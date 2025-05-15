@@ -23,40 +23,28 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Nút show modal hướng dẫn
-if st.button("➕ Thêm vào Màn hình chính", key="add_to_home"):
-    # Hiện modal hướng dẫn
-    components.html(
-        """
-<style>
-#addModal {
-  position: fixed; top:0; left:0; width:100%; height:100%;
-  background: rgba(0,0,0,0.8); color:#fff;
-  display:flex; align-items:center; justify-content:center;
-  z-index:9999;
-}
-#addModal .content {
-  max-width:300px; text-align:left;
-  background:#222; padding:1rem; border-radius:8px;
-}
-#addModal button {
-  margin-top:0.5rem; padding:0.5rem 1rem;
-}
-</style>
-<div id="addModal">
-  <div class="content">
-    <h3>Thêm vào Màn hình chính</h3>
-    <ol>
-      <li>Nhấn nút <span style="font-weight:bold">Chia sẻ</span> ở cuối trình duyệt Safari.</li>
-      <li>Chọn <span style="font-weight:bold">Thêm vào Màn hình chính</span>.</li>
-      <li>Đặt tên (mặc định “FISC”) rồi nhấn <span style="font-weight:bold">Thêm</span>.</li>
-    </ol>
-    <button onclick="document.getElementById('addModal').style.display='none'">Đã hiểu</button>
-  </div>
-</div>
-        """,
-        height=400,
-    )
+# Khởi tạo session state cho phần hướng dẫn
+if "show_instructions" not in st.session_state:
+    st.session_state.show_instructions = False
+
+# Nút “Thêm vào MH chính”
+if st.button("➕ Thêm vào Màn hình chính"):
+    st.session_state.show_instructions = True
+
+# Nếu đang hiển thị hướng dẫn
+if st.session_state.show_instructions:
+    st.markdown("---")
+    st.subheader("🛈 Hướng dẫn Thêm vào Màn hình chính")
+    st.write("""
+    1. Nhấn nút **Chia sẻ** (biểu tượng ⬆️) ở dưới cùng Safari.  
+    2. Chọn **Thêm vào Màn hình chính**.  
+    3. Đặt tên (mặc định “Phân tích thông tin xấu độc”) rồi nhấn **Thêm**.
+    """)
+    # Nút “Đã hiểu”
+    if st.button("Đã hiểu"):
+        st.session_state.show_instructions = False
+        # thứ tự đảm bảo xóa hẳn khối markdown ở lần rerun tiếp theo
+    st.markdown("---")
 
 # —————————————— CẤU HÌNH ——————————————
 openai.api_key = st.secrets["OPENAI_API_KEY"]
