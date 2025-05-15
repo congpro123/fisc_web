@@ -27,23 +27,44 @@ st.markdown(
 if "show_instructions" not in st.session_state:
     st.session_state.show_instructions = False
 
-# Nút “Thêm vào MH chính”
 if st.button("Cài phần mềm về điện thoại"):
     st.session_state.show_instructions = True
 
-# Nếu đang hiển thị hướng dẫn
 if st.session_state.show_instructions:
     st.markdown("---")
-    st.subheader("🛈 Hướng dẫn Thêm vào Màn hình chính")
-    st.write("""
-    1. Nhấn nút **Chia sẻ** (biểu tượng ⬆️) ở dưới cùng Safari.  
-    2. Chọn **Thêm vào Màn hình chính**.  
-    3. Đặt tên (mặc định “Phân tích thông tin xấu độc”) rồi nhấn **Thêm**.
-    """)
-    # Nút “Đã hiểu”
+    # 1. Cho người dùng chọn thiết bị
+    device = st.radio("Chọn thiết bị của bạn:", ["iOS", "Android"])
+
+    if device == "iOS":
+        st.subheader("🛈 Hướng dẫn Thêm vào Màn hình chính (iOS)")
+        st.write("""
+        1. Nhấn nút **Chia sẻ** (biểu tượng ⬆️) ở dưới cùng Safari.  
+        2. Chọn **Thêm vào Màn hình chính**.  
+        3. Đặt tên (mặc định “Phân tích thông tin xấu độc”) rồi nhấn **Thêm**.
+        """)
+
+    else:  # Android
+        st.subheader("🛈 Tải và Cài APK (Android)")
+        apk_url = "http://raw.githubusercontent.com/congpro123/fisc_web/main/FISC.apk"  # đổi thành URL thật
+        # Nút tải APK
+        st.download_button(
+            label="⬇️ Tải APK về máy",
+            data=requests.get(apk_url).content,
+            file_name="app.apk",
+            mime="application/vnd.android.package-archive"
+        )
+        # Tạo QR code cho APK
+        import qrcode
+        from io import BytesIO
+
+        qr = qrcode.make(apk_url)
+        buf = BytesIO()
+        qr.save(buf, format="PNG")
+        st.image(buf.getvalue(), caption="Quét QR để tải APK", width=200)
+
+    # Nút đóng hướng dẫn
     if st.button("Đã hiểu"):
         st.session_state.show_instructions = False
-        # thứ tự đảm bảo xóa hẳn khối markdown ở lần rerun tiếp theo
     st.markdown("---")
 
 # —————————————— CẤU HÌNH ——————————————
