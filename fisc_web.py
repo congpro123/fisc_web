@@ -1,5 +1,5 @@
+```python
 import streamlit as st
-from streamlit_paste_button import paste_image_button
 import openai
 from gtts import gTTS
 import base64
@@ -113,7 +113,7 @@ if not st.session_state.show_report:
         st.image("pic/iconfisc.png", width=64)
     with col_title:
         st.title("Phân tích thông tin xấu độc")
-    st.markdown("Nhập nội dung, upload/paste ảnh rồi trả lời CAPTCHA và nhấn **Phân tích**.")
+    st.markdown("Nhập nội dung, upload ảnh, trả lời CAPTCHA rồi nhấn **Phân tích**.")
 
     # Input content and images
     c1, c2 = st.columns([2,1])
@@ -124,14 +124,6 @@ if not st.session_state.show_report:
         if uploaded:
             for f in uploaded:
                 st.session_state.image_files.append(f)
-        st.markdown("**Hoặc dán ảnh từ clipboard:**")
-        paste_res = paste_image_button(label="📋 Dán ảnh", key="paste_img")
-        if paste_res.image_data is not None:
-            buf = BytesIO(); paste_res.image_data.save(buf, format="PNG")
-            buf.name = "pasted.png"; buf.seek(0)
-            st.session_state.image_files.append(buf)
-            st.success("✅ Đã dán ảnh từ clipboard!")
-
         # Display thumbnails & delete buttons
         for idx, f in enumerate(st.session_state.image_files):
             cols = st.columns([1,3,1])
@@ -142,7 +134,7 @@ if not st.session_state.show_report:
                     st.session_state.image_files.pop(idx)
                     break
 
-    # Arrange CAPTCHA and Analyze on same row widths
+    # Arrange CAPTCHA and Analyze on same row
     cap_col, btn_col = st.columns([2,1])
     with cap_col:
         captcha_ans = st.text_input(f"🔒 CAPTCHA: {st.session_state.captcha_q}", key="captcha_input")
@@ -159,11 +151,11 @@ if not st.session_state.show_report:
             with st.spinner("Đang phân tích..."):
                 st.session_state.result = analyze(content, st.session_state.image_files)
                 st.session_state.ready = True
+            # Reset CAPTCHA
             a, b = random.randint(1,9), random.randint(1,9)
             st.session_state.captcha_q = f"{a} + {b}"
             st.session_state.captcha_a = str(a + b)
-            if "captcha_input" in st.session_state:
-                del st.session_state["captcha_input"]
+            if "captcha_input" in st.session_state: del st.session_state["captcha_input"]
 
     # Show results
     if st.session_state.ready:
@@ -204,3 +196,4 @@ else:
     with c2:
         if st.button("Huỷ"):
             st.session_state.show_report = False
+```
