@@ -2,5 +2,4 @@ streamlit
 openai
 gtts
 requests
-qrcode[pil]
-streamlit-dropzone
+qrcode
