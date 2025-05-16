@@ -64,8 +64,8 @@ if st.session_state.show_instructions:
 # CAPTCHA setup
 if "captcha_q" not in st.session_state:
     a, b = random.randint(1, 9), random.randint(1, 9)
-    st.session_state.captcha_q = f"{a} + {b}"
-    st.session_state.captcha_a = str(a + b) + " = ?"
+    st.session_state.captcha_q = f"{a} + {b}" + " = ?"
+    st.session_state.captcha_a = str(a + b)
 
 # OpenAI & endpoint
 openai.api_key = st.secrets.get("OPENAI_API_KEY", "")
