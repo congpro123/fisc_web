@@ -6,6 +6,7 @@ import os
 import tempfile
 import requests
 import streamlit.components.v1 as components
+import random
 
 st.set_page_config(
     page_title="Phân tích thông tin xấu độc", 
