@@ -72,6 +72,12 @@ if st.session_state.show_instructions:
         st.session_state.show_instructions = False
     st.markdown("---")
 
+# CAPTCHA setup
+if "captcha_q" not in st.session_state:
+    a, b = random.randint(1, 9), random.randint(1, 9)
+    st.session_state.captcha_q = f"{a} + {b}"
+    st.session_state.captcha_a = str(a + b)
+
 # —————————————— CẤU HÌNH ——————————————
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 ADMIN_ENDPOINT = "https://congpro.pythonanywhere.com/api/reports"
@@ -160,15 +166,28 @@ if not st.session_state.show_report:
             key="uploader"
         )
 
-    if st.button("🚀 Phân tích"):
-        if not content and not image_files:
-            st.warning("⚠️ Vui lòng nhập nội dung hoặc upload ảnh.")
+    # Arrange CAPTCHA and Analyze on same row widths
+    cap_col, btn_col = st.columns([2,1])
+    with cap_col:
+        captcha_ans = st.text_input(f"🔒 CAPTCHA: {st.session_state.captcha_q}", key="captcha_input")
+    with btn_col:
+        analyze_clicked = st.button("🚀 Phân tích")
+
+    if analyze_clicked:
+        if captcha_ans != st.session_state.captcha_a:
+            st.error("❌ CAPTCHA sai, thử lại.")
+        elif not content and not st.session_state.image_files:
+            st.warning("⚠️ Nhập nội dung hoặc thêm ảnh.")
         else:
             st.session_state.content = content
-            st.session_state.image_files = image_files
-            with st.spinner("⏳ Đang phân tích..."):
-                st.session_state.result = analyze(content, image_files)
+            with st.spinner("Đang phân tích..."):
+                st.session_state.result = analyze(content, st.session_state.image_files)
                 st.session_state.ready = True
+            a, b = random.randint(1,9), random.randint(1,9)
+            st.session_state.captcha_q = f"{a} + {b}"
+            st.session_state.captcha_a = str(a + b)
+            if "captcha_input" in st.session_state:
+                del st.session_state["captcha_input"]
 
     if st.session_state.ready:
         st.markdown("### 📋 Kết quả phân loại:")
