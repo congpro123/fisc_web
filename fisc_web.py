@@ -156,7 +156,7 @@ if not st.session_state.show_report:
             <style>
             /* Chỉ áp dụng margin-top cho nút trong cột này */
             button[data-testid="stButton"] {
-                margin-top: 100px;
+                margin-top: 900px;
             }
             </style>
             """,
