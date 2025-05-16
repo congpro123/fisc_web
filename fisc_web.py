@@ -1,3 +1,4 @@
+```python
 import streamlit as st
 import openai
 from gtts import gTTS
@@ -136,9 +137,12 @@ if not st.session_state.show_report:
                     st.session_state.image_files.pop(idx)
                     break
 
-    # Arrange CAPTCHA and Analyze vertically
-    st.text_input(f"🔒 CAPTCHA: {st.session_state.captcha_q}", key="captcha_input")
-    analyze_clicked = st.button("🚀 Phân tích")
+        # Arrange CAPTCHA and Analyze button side by side with matching widths
+    cap_col, btn_col = st.columns([2,1])
+    with cap_col:
+        captcha_ans = st.text_input(f"🔒 CAPTCHA: {st.session_state.captcha_q}", key="captcha_input")
+    with btn_col:
+        analyze_clicked = st.button("🚀 Phân tích")
 
     if analyze_clicked:
         captcha_ans = st.session_state.get("captcha_input", "")
@@ -196,3 +200,4 @@ else:
     with c2:
         if st.button("Huỷ"):
             st.session_state.show_report = False
+```
