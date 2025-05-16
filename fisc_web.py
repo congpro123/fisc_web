@@ -137,25 +137,20 @@ if not st.session_state.show_report:
         st.title("Phân tích thông tin xấu độc")
     st.markdown("Nhập nội dung, upload/paste ảnh, trả lời CAPTCHA rồi nhấn **Phân tích**.")
 
-    # CAPTCHA
+    # CAPTCHA input
     captcha_ans = st.text_input(f"🔒 CAPTCHA: {st.session_state.captcha_q} = ?", key="captcha_input")
 
-    c1, c2 = st.columns([2, 1])
+    # Input content and images
+    c1, c2 = st.columns([2,1])
     with c1:
-        content = st.text_area("✍️ Nhập nội dung", value=st.session_state.content, height=150)
+        content = st.text_area("✍️ Nhập nội dung", st.session_state.content, height=150)
     with c2:
-        # 1) Upload files
-        uploaded = st.file_uploader(
-            "🖼️ Upload ảnh",
-            type=["png","jpg","jpeg"],
-            accept_multiple_files=True
-        )
+        # Upload images
+        uploaded = st.file_uploader("🖼️ Upload ảnh", type=["png","jpg","jpeg"], accept_multiple_files=True)
         if uploaded:
             for f in uploaded:
-                if f.name not in st.session_state.uploaded_names:
-                    st.session_state.uploaded_names.append(f.name)
-                    st.session_state.image_files.append(f)
-        # 2) Paste from clipboard
+                st.session_state.image_files.append(f)
+        # Paste from clipboard
         st.markdown("**Hoặc dán ảnh từ clipboard:**")
         paste_res = paste_image_button(label="📋 Dán ảnh", key="paste_img")
         if paste_res.image_data is not None:
@@ -170,13 +165,9 @@ if not st.session_state.show_report:
             with cols[1]:
                 st.image(f, width=100)
             with cols[2]:
-                def _remove(i=idx):
-                    # also remove from uploaded_names if applicable
-                    name = getattr(st.session_state.image_files[i], 'name', None)
-                    st.session_state.image_files.pop(i)
-                    if name and name in st.session_state.uploaded_names:
-                        st.session_state.uploaded_names.remove(name)
-                st.button("❌", key=f"del_{idx}", on_click=_remove)
+                if st.button("❌", key=f"del_{idx}"):
+                    st.session_state.image_files.pop(idx)
+                    break
 
     # Analyze button
     if st.button("🚀 Phân tích"):
@@ -189,8 +180,8 @@ if not st.session_state.show_report:
             with st.spinner("Đang phân tích..."):
                 st.session_state.result = analyze(content, st.session_state.image_files)
                 st.session_state.ready = True
-            # reset captcha
-            a, b = random.randint(1, 9), random.randint(1, 9)
+            # Reset CAPTCHA
+            a, b = random.randint(1,9), random.randint(1,9)
             st.session_state.captcha_q = f"{a} + {b}"
             st.session_state.captcha_a = str(a + b)
             if "captcha_input" in st.session_state:
@@ -207,7 +198,7 @@ if not st.session_state.show_report:
             st.session_state.show_report = True
 
 else:
-    # Report Form
+    # Report form
     st.title("📝 Form Báo Cáo")
     report_type = st.selectbox("Loại báo cáo", [
         "Tin giả","Xuyên tạc lịch sử","Kích động bạo lực",
@@ -217,12 +208,8 @@ else:
     c1, c2 = st.columns(2)
     with c1:
         if st.button("Gửi"):
-            data = {
-                "type": report_type,
-                "article": st.session_state.content,
-                "extra_info": extra,
-                "classification": st.session_state.result
-            }
+            data = {"type": report_type, "article": st.session_state.content,
+                    "extra_info": extra, "classification": st.session_state.result}
             files = []
             for f in st.session_state.image_files:
                 b = f.read()
