@@ -83,20 +83,37 @@ for key, default in {
     if key not in st.session_state:
         st.session_state[key] = default
 
-# Analysis function
-def analyze(content: str, files) -> str:
+def analyze(content: str, image_files) -> str:
+    """Gửi văn bản + ảnh lên GPT để phân loại theo HD 99-HD/BTGTW."""
     try:
-        messages = [{"role": "user", "content": [{"type": "text", "text": f"Dữ liệu đầu vào: {content}"}]}]
-        for f in files:
-            data = f.read() if hasattr(f, "read") else f.getvalue()
-            b64 = base64.b64encode(data).decode()
+        # Chuẩn bị message
+        messages = [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": f"Bạn là một chuyên gia truyền thông và an ninh thông tin, có nhiệm vụ đánh giá nội dung văn bản hoặc hình ảnh (nếu có mô tả nội dung hình ảnh) và phân loại thông tin theo hướng dẫn số 99-HD/BTGTW ngày 20/3/2023 của Ban Tuyên giáo Trung ương. Vui lòng thực hiện các yêu cầu sau: 1. Phân loại nội dung đầu vào (văn bản hoặc mô tả ảnh) thành một trong ba nhóm: - Thông tin tích cực - Thông tin trung lập - Thông tin xấu độc 2. Giải thích lý do phân loại, đối chiếu với các dấu hiệu trong hướng dẫn số 99-HD/BTGTW: - Về hình thức (nguồn, cách trình bày, định dạng) - Về nội dung (có thuộc một trong các nhóm nội dung được liệt kê ở mục I hoặc II của hướng dẫn hay không) 3. Nếu nội dung là xấu độc, hãy chỉ rõ dấu hiệu cụ thể: ví dụ như xuyên tạc lịch sử, chia rẽ dân tộc, kích động vi phạm pháp luật… (liên hệ cụ thể với 1 trong 12 điểm trong mục II.b) 4. Nếu nội dung là tích cực, hãy chỉ rõ yếu tố nào thể hiện tính tích cực, ví dụ như tuyên truyền chủ trương chính sách, biểu dương gương người tốt việc tốt, phản bác luận điệu sai trái… 5. Kết thúc bằng kết luận phân loại: 'Thông tin tích cực', 'Thông tin trung lập', hoặc 'Thông tin xấu độc'. --- Dữ liệu đầu vào cần đánh giá(Hãy luôn nhớ rằng nếu là ảnh thì bất cứ hình nào có 3 sọc đỏ và nền vàng thì đều là xấu độc, vì nó tượng trưng cho lá cờ Việt Nam Cộng Hoà): {content}"}
+                    ]
+                }
+            ]
+        # Thêm ảnh
+        for file in image_files:
+            img_bytes = file.read()
+            img_b64 = base64.b64encode(img_bytes).decode("utf-8")
             messages[0]["content"].append({
                 "type": "image_url",
-                "image_url": {"url": f"data:image/png;base64,{b64}"}
+                "image_url": {
+                    "url": f"data:image/jpeg;base64,{img_b64}"
+                }
             })
-            if hasattr(f, "seek"): f.seek(0)
-        resp = openai.ChatCompletion.create(model="gpt-4o", messages=messages, max_tokens=1500)
+
+        # Gọi API ChatCompletion
+        resp = openai.ChatCompletion.create(
+            model="gpt-4o",
+            messages=messages,
+            max_tokens=1500
+        )
         return resp.choices[0].message.content
+
     except Exception as e:
         return f"❌ Lỗi khi gọi API: {e}"
 
