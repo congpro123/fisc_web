@@ -136,16 +136,17 @@ if not st.session_state.show_report:
                     st.session_state.image_files.pop(idx)
                     break
 
-            # CAPTCHA input full width beneath upload
+            # CAPTCHA và nút Phân tích đặt cùng hàng
+top_col, btn_col = st.columns([3,1])
+with top_col:
     captcha_ans = st.text_input(
         f"🔒 CAPTCHA: {st.session_state.captcha_q}",
         key="captcha_input"
     )
-
-    # Phân tích button dưới CAPTCHA
+with btn_col:
     analyze_clicked = st.button("🚀 Phân tích")
 
-    if analyze_clicked:
+if analyze_clicked:
         captcha_ans = st.session_state.get("captcha_input", "")
         if captcha_ans != st.session_state.captcha_a:
             st.error("❌ CAPTCHA sai, thử lại.")
