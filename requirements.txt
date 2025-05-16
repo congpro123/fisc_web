@@ -3,3 +3,4 @@ openai
 gtts
 requests
 qrcode
+streamlit-paste-button
