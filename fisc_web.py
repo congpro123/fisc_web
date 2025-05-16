@@ -139,30 +139,13 @@ if not st.session_state.show_report:
                     st.session_state.image_files.pop(idx)
                     break
 
-    # 1) Thêm một ít khoảng trống phía trên để đẩy xuống (vertical offset)
-    st.markdown("<div style='margin-top:900px;'></div>", unsafe_allow_html=True)
-    
-    # 2) Chia cột ngang 3:1 cho CAPTCHA và nút Phân tích
-    col_cap, col_btn = st.columns([3, 1])
-    with col_cap:
-        captcha_ans = st.text_input(
-            f"🔒 CAPTCHA: {st.session_state.captcha_q}",
-            key="captcha_input"
-        )
-    with col_btn:
-        # 3) Inject CSS chỉ cho cột này (nếu cần tweak thêm)
-        st.markdown(
-            """
-            <style>
-            /* Chỉ áp dụng margin-top cho nút trong cột này */
-            button[data-testid="stButton"] {
-                margin-top: 900px;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
+    # CAPTCHA and Analyze on one row
+    cap_col, btn_col = st.columns([1,19])
+    with cap_col:
+        captcha_ans = st.text_input(f"🔒 CAPTCHA: {st.session_state.captcha_q}", key="captcha_input")
+    with btn_col:
         analyze_clicked = st.button("🚀 Phân tích")
+
     # Handle analyze
     if analyze_clicked:
         if captcha_ans != st.session_state.captcha_a:
