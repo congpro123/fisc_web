@@ -220,5 +220,4 @@ else:
                 st.session_state.show_report=False
     with c2:
         if st.button("Huỷ"):
-            if st.button("Huỷ"):
             st.session_state.show_report=False
