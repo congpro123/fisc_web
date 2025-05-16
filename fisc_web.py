@@ -147,7 +147,7 @@ if not st.session_state.show_report:
         )
     with btn_col:
         # tạo khoảng trống để đẩy nút xuống ngang với ô nhập CAPTCHA
-        st.markdown("<div style='padding-top: 30px'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='padding-top: 29px'></div>", unsafe_allow_html=True)
         # hoặc: 
         # st.write("")
         # st.write("")
