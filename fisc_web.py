@@ -1,3 +1,4 @@
+```python
 import streamlit as st
 import openai
 from gtts import gTTS
@@ -30,8 +31,10 @@ st.markdown(
 # Mobile install instructions
 if "show_instructions" not in st.session_state:
     st.session_state.show_instructions = False
+
 if st.button("Cài phần mềm về điện thoại"):
     st.session_state.show_instructions = True
+
 if st.session_state.show_instructions:
     st.markdown("---")
     device = st.radio("Chọn thiết bị của bạn:", ["iOS", "Android"])
@@ -107,6 +110,7 @@ def text_to_speech(text: str) -> str:
 
 # Main UI
 if not st.session_state.show_report:
+    # Header
     col_icon, col_title = st.columns([0.05, 0.95])
     with col_icon:
         st.image(
@@ -117,7 +121,7 @@ if not st.session_state.show_report:
         st.title("Phân tích thông tin xấu độc")
     st.markdown("Nhập nội dung, upload ảnh rồi trả lời CAPTCHA và nhấn **Phân tích**.")
 
-    # Input content and images
+    # Input text and images
     c1, c2 = st.columns([2,1])
     with c1:
         content = st.text_area("✍️ Nhập nội dung", st.session_state.content, height=150)
@@ -126,28 +130,25 @@ if not st.session_state.show_report:
         if uploaded:
             for f in uploaded:
                 st.session_state.image_files.append(f)
-        # Display thumbnails & delete buttons
+        # Show thumbnails + delete
         for idx, f in enumerate(st.session_state.image_files):
-            cols = st.columns([1,3,1])
-            with cols[1]:
+            img_col, btn_col = st.columns([3,1])
+            with img_col:
                 st.image(f, width=100)
-            with cols[2]:
+            with btn_col:
                 if st.button("❌", key=f"del_{idx}"):
                     st.session_state.image_files.pop(idx)
                     break
 
-            # CAPTCHA và nút Phân tích đặt cùng hàng
-top_col, btn_col = st.columns([3,1])
-with top_col:
-    captcha_ans = st.text_input(
-        f"🔒 CAPTCHA: {st.session_state.captcha_q}",
-        key="captcha_input"
-    )
-with btn_col:
-    analyze_clicked = st.button("🚀 Phân tích")
+    # CAPTCHA and Analyze on one row
+    cap_col, btn_col = st.columns([3,1])
+    with cap_col:
+        captcha_ans = st.text_input(f"🔒 CAPTCHA: {st.session_state.captcha_q}", key="captcha_input")
+    with btn_col:
+        analyze_clicked = st.button("🚀 Phân tích")
 
-if analyze_clicked:
-        captcha_ans = st.session_state.get("captcha_input", "")
+    # Handle analyze
+    if analyze_clicked:
         if captcha_ans != st.session_state.captcha_a:
             st.error("❌ CAPTCHA sai, thử lại.")
         elif not content and not st.session_state.image_files:
@@ -157,13 +158,14 @@ if analyze_clicked:
             with st.spinner("Đang phân tích..."):
                 st.session_state.result = analyze(content, st.session_state.image_files)
                 st.session_state.ready = True
-            # Reset CAPTCHA
+            # reset captcha
             a, b = random.randint(1,9), random.randint(1,9)
             st.session_state.captcha_q = f"{a} + {b}"
             st.session_state.captcha_a = str(a + b)
-            if "captcha_input" in st.session_state: del st.session_state["captcha_input"]
+            if "captcha_input" in st.session_state:
+                del st.session_state["captcha_input"]
 
-    # Show results
+    # Show result
     if st.session_state.ready:
         st.markdown("### 📋 Kết quả:")
         st.write(st.session_state.result)
@@ -202,3 +204,4 @@ else:
     with c2:
         if st.button("Huỷ"):
             st.session_state.show_report = False
+```
