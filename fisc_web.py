@@ -66,7 +66,7 @@ if "captcha_q" not in st.session_state:
     st.session_state.captcha_a = str(a + b)
 
 # OpenAI & endpoint
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+openai.api_key = st.secrets.get("OPENAI_API_KEY", "")
 ADMIN_ENDPOINT = "https://congpro.pythonanywhere.com/api/reports"
 
 # Session defaults
@@ -107,12 +107,15 @@ def text_to_speech(text: str) -> str:
 
 # Main UI
 if not st.session_state.show_report:
-    col_icon, col_title = st.columns([0.1, 0.9])
+    col_icon, col_title = st.columns([0.05, 0.95])
     with col_icon:
-        st.image("pic/iconfisc.png", width=64)
+        st.image(
+            "pic/iconfisc.png",  # đường dẫn tới icon giấy của bạn
+            width=93               # điều chỉnh kích thước cho vừa
+        )
     with col_title:
         st.title("Phân tích thông tin xấu độc")
-    st.markdown("Nhập nội dung, upload ảnh, trả lời CAPTCHA rồi nhấn **Phân tích**.")
+    st.markdown("Nhập nội dung, upload ảnh rồi trả lời CAPTCHA và nhấn **Phân tích**.")
 
     # Input content and images
     c1, c2 = st.columns([2,1])
@@ -133,14 +136,12 @@ if not st.session_state.show_report:
                     st.session_state.image_files.pop(idx)
                     break
 
-    # Arrange CAPTCHA and Analyze on same row
-    cap_col, btn_col = st.columns([2,1])
-    with cap_col:
-        captcha_ans = st.text_input(f"🔒 CAPTCHA: {st.session_state.captcha_q}", key="captcha_input")
-    with btn_col:
-        analyze_clicked = st.button("🚀 Phân tích")
+    # Arrange CAPTCHA and Analyze vertically
+    st.text_input(f"🔒 CAPTCHA: {st.session_state.captcha_q}", key="captcha_input")
+    analyze_clicked = st.button("🚀 Phân tích")
 
     if analyze_clicked:
+        captcha_ans = st.session_state.get("captcha_input", "")
         if captcha_ans != st.session_state.captcha_a:
             st.error("❌ CAPTCHA sai, thử lại.")
         elif not content and not st.session_state.image_files:
