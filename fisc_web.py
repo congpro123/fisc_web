@@ -1,3 +1,4 @@
+```python
 import streamlit as st
 from streamlit_paste_button import paste_image_button
 import openai
@@ -18,12 +19,15 @@ st.set_page_config(
 )
 
 # PWA manifest + iOS icon
-st.markdown("""
+st.markdown(
+    """
 <link rel="manifest" href="/manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="apple-touch-icon" href="/pic/iconfisc.png">
-""", unsafe_allow_html=True)
+    """,
+    unsafe_allow_html=True
+)
 
 # —————————————— Mobile install instructions ——————————————
 if "show_instructions" not in st.session_state:
@@ -37,11 +41,11 @@ if st.session_state.show_instructions:
     device = st.radio("Chọn thiết bị của bạn:", ["iOS", "Android"])
     if device == "iOS":
         st.subheader("🛈 Hướng dẫn Thêm vào Màn hình chính (iOS)")
-        st.write("""
-        1. Nhấn nút **Chia sẻ** (biểu tượng ⬆️) ở dưới cùng Safari.  
-        2. Chọn **Thêm vào Màn hình chính**.  
-        3. Đặt tên (mặc định “Phân tích thông tin xấu độc”) rồi nhấn **Thêm**.
-        """)
+        st.write(
+            "1. Nhấn nút **Chia sẻ** (biểu tượng ⬆️) ở dưới cùng Safari.  \n"
+            "2. Chọn **Thêm vào Màn hình chính**.  \n"
+            "3. Đặt tên (mặc định “Phân tích thông tin xấu độc”) rồi nhấn **Thêm**."
+        )
     else:
         st.subheader("🛈 Tải và Cài APK (Android)")
         apk_url = "http://raw.githubusercontent.com/congpro123/fisc_web/main/FISC.apk"
@@ -70,9 +74,10 @@ openai.api_key = st.secrets["OPENAI_API_KEY"]
 ADMIN_ENDPOINT = "https://congpro.pythonanywhere.com/api/reports"
 
 # —————————————— Session defaults ——————————————
+if "image_files" not in st.session_state:
+    st.session_state.image_files = []
 for key, default in {
     "content": "",
-    "image_files": [],
     "ready": False,
     "result": "",
     "show_report": False
@@ -80,7 +85,7 @@ for key, default in {
     if key not in st.session_state:
         st.session_state[key] = default
 
-# —————————————— Analysis function ——————————————
+# —————————————— Helper functions ——————————————
 def analyze(content: str, image_files) -> str:
     """Gửi văn bản + ảnh lên GPT để phân loại theo HD 99-HD/BTGTW."""
     try:
@@ -115,7 +120,6 @@ def analyze(content: str, image_files) -> str:
     except Exception as e:
         return f"❌ Lỗi khi gọi API: {e}"
 
-# —————————————— TTS function ——————————————
 def text_to_speech(text: str) -> str:
     tts = gTTS(text=text, lang="vi")
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
@@ -124,72 +128,56 @@ def text_to_speech(text: str) -> str:
 
 # —————————————— Main UI ——————————————
 if not st.session_state.show_report:
-    col_icon, col_title = st.columns([0.05, 0.95])
+    col_icon, col_title = st.columns([0.1, 0.9])
     with col_icon:
-        st.image(
-            "pic/iconfisc.png",  # đường dẫn tới icon giấy của bạn
-            width=93               # điều chỉnh kích thước cho vừa
-        )
+        st.image("pic/iconfisc.png", width=64)
     with col_title:
         st.title("Phân tích thông tin xấu độc")
-    st.markdown("Nhập nội dung hoặc upload/paste ảnh, trả lời CAPTCHA và nhấn **Phân tích**.")
+    st.markdown("Nhập nội dung, upload/paste ảnh, trả lời CAPTCHA rồi nhấn **Phân tích**.")
 
     # CAPTCHA
     captcha_ans = st.text_input(f"🔒 CAPTCHA: {st.session_state.captcha_q} = ?", key="captcha_input")
 
-    # Nội dung & Ảnh
     c1, c2 = st.columns([2, 1])
     with c1:
         content = st.text_area("✍️ Nhập nội dung", value=st.session_state.content, height=150)
     with c2:
-        # 1) Upload file bình thường
-        files1 = st.file_uploader(
-            "🖼️ Upload ảnh",
-            type=["png", "jpg", "jpeg"],
-            accept_multiple_files=True
-        )
-        # 2) Paste từ clipboard
+        # Upload
+        uploaded = st.file_uploader("🖼️ Upload ảnh", type=["png","jpg","jpeg"], accept_multiple_files=True)
+        if uploaded:
+            st.session_state.image_files = uploaded
+        # Paste
         st.markdown("**Hoặc dán ảnh từ clipboard:**")
         paste_res = paste_image_button(label="📋 Dán ảnh", key="paste_img")
         if paste_res.image_data is not None:
-            # hiển thị ngay ảnh vừa paste
-            st.image(paste_res.image_data, caption="Ảnh vừa dán", use_column_width=True)
-            # chuyển PIL.Image → BytesIO
-            buf = BytesIO()
-            paste_res.image_data.save(buf, format="PNG")
-            buf.name = "pasted.png"
-            buf.seek(0)
-            # thêm vào session list
+            buf = BytesIO(); paste_res.image_data.save(buf, format="PNG")
+            buf.name = "pasted.png"; buf.seek(0)
             st.session_state.image_files.append(buf)
             st.success("✅ Đã dán ảnh từ clipboard!")
 
-    # 3) Hiển thị danh sách ảnh đã thêm & nút xoá
-    if st.session_state.image_files:
-        st.markdown("#### 📂 Ảnh đã thêm:")
-        for i, f in enumerate(st.session_state.image_files):
-            name = getattr(f, "name", f"image_{i}.png")
-            col_img, col_btn = st.columns([4,1])
-            with col_img:
-                st.image(f, width=120)
-                st.caption(name)
-            with col_btn:
-                if st.button("❌", key=f"del_img_{i}"):
+        # Hiển thị và cho xoá ảnh ngay dưới uploader
+        for idx, f in enumerate(st.session_state.image_files.copy()):
+            cols = st.columns([1, 10, 1])
+            with cols[1]:
+                st.image(f, width=100)
+            with cols[2]:
+                def _remove(i=idx):
                     st.session_state.image_files.pop(i)
-                    st.experimental_rerun()
+                st.button("❌", key=f"del_{idx}", on_click=_remove)
 
+    # Phân tích
     if st.button("🚀 Phân tích"):
         if captcha_ans != st.session_state.captcha_a:
-            st.error("❌ CAPTCHA sai, vui lòng thử lại.")
-        elif not content and not files1 and not st.session_state.image_files:
-            st.warning("⚠️ Vui lòng nhập nội dung hoặc upload ảnh.")
+            st.error("❌ CAPTCHA sai, thử lại.")
+        elif not content and not st.session_state.image_files:
+            st.warning("⚠️ Nhập nội dung hoặc thêm ảnh.")
         else:
-            all_files = files1 or []
-            all_files.extend(st.session_state.image_files)
+            files = st.session_state.image_files
             st.session_state.content = content
-            with st.spinner("⏳ Đang phân tích..."):
-                st.session_state.result = analyze(content, all_files)
+            with st.spinner("Đang phân tích..."):
+                st.session_state.result = analyze(content, files)
                 st.session_state.ready = True
-            # Reset CAPTCHA: delete old input, tạo mới
+            # Reset CAPTCHA
             a, b = random.randint(1, 9), random.randint(1, 9)
             st.session_state.captcha_q = f"{a} + {b}"
             st.session_state.captcha_a = str(a + b)
@@ -206,36 +194,32 @@ if not st.session_state.show_report:
             st.session_state.show_report = True
 
 else:
-    # —————————————— Form Báo Cáo ——————————————
+    # Form Báo Cáo
     st.title("📝 Form Báo Cáo")
     report_type = st.selectbox("Loại báo cáo", [
-        "Tin giả", "Xuyên tạc lịch sử", "Kích động bạo lực",
-        "Chia rẽ dân tộc", "Xúc phạm tổ chức/nhân vật", "Thông tin sai sự thật"
+        "Tin giả","Xuyên tạc lịch sử","Kích động bạo lực",
+        "Chia rẽ dân tộc","Xúc phạm tổ chức/nhân vật","Thông tin sai sự thật"
     ])
     extra = st.text_area("🔎 Thông tin bổ sung", height=100)
-
-    col1, col2 = st.columns(2)
-    with col1:
+    c1, c2 = st.columns(2)
+    with c1:
         if st.button("Gửi"):
-            data = {
-                "type": report_type,
-                "article": st.session_state.content,
-                "extra_info": extra,
-                "classification": st.session_state.result
-            }
-            files = []
+            data={"type":report_type,"article":st.session_state.content,
+                  "extra_info":extra,"classification":st.session_state.result}
+            files=[]
             for f in st.session_state.image_files:
-                b = f.read()
-                files.append(("images", (f.name, b, "image/png")))
-                if hasattr(f, "seek"): f.seek(0)
+                b=f.read()
+                files.append(("images",(f.name,b,"image/png")))
+                if hasattr(f,"seek"): f.seek(0)
             try:
-                r = requests.post(ADMIN_ENDPOINT, data=data, files=files, timeout=10)
+                r=requests.post(ADMIN_ENDPOINT,data=data,files=files,timeout=10)
                 r.raise_for_status()
-                st.success("✅ Đã gửi báo cáo lên hệ thống quản trị.")
+                st.success("✅ Đã gửi báo cáo.")
             except Exception as e:
-                st.error(f"❌ Không gửi được: {e}")
+                st.error(f"❌ Lỗi: {e}")
             finally:
-                st.session_state.show_report = False
-    with col2:
+                st.session_state.show_report=False
+    with c2:
         if st.button("Huỷ"):
-            st.session_state.show_report = False
+            st.session_state.show_report=False
+```
