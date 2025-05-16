@@ -1,4 +1,3 @@
-```python
 import streamlit as st
 from streamlit_paste_button import paste_image_button
 import openai
