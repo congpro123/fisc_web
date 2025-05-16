@@ -140,7 +140,7 @@ if not st.session_state.show_report:
                     break
 
     # 1) Thêm một ít khoảng trống phía trên để đẩy xuống (vertical offset)
-    st.markdown("<div style='margin-top:20px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='margin-top:900px;'></div>", unsafe_allow_html=True)
     
     # 2) Chia cột ngang 3:1 cho CAPTCHA và nút Phân tích
     col_cap, col_btn = st.columns([3, 1])
