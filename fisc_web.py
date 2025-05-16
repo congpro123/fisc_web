@@ -209,4 +209,3 @@ else:
     with col2:
         if st.button("Huỷ"):
             st.session_state.show_report=False
-```
