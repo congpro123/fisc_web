@@ -129,26 +129,50 @@ if not st.session_state.show_report:
         st.image("pic/iconfisc.png", width=64)
     with col_title:
         st.title("Phân tích thông tin xấu độc")
-    st.markdown("Nhập nội dung hoặc upload ảnh, trả lời CAPTCHA và nhấn **Phân tích**.")
+    st.markdown("Nhập nội dung hoặc upload/paste ảnh, trả lời CAPTCHA và nhấn **Phân tích**.")
 
     # CAPTCHA
     captcha_ans = st.text_input(f"🔒 CAPTCHA: {st.session_state.captcha_q} = ?", key="captcha_input")
 
-    # Nhập content & ảnh
+    # Nội dung & Ảnh
     c1, c2 = st.columns([2, 1])
     with c1:
         content = st.text_area("✍️ Nhập nội dung", value=st.session_state.content, height=150)
     with c2:
-        files1 = st.file_uploader("🖼️ Upload ảnh", type=["png", "jpg", "jpeg"], accept_multiple_files=True)
+        # 1) Upload file bình thường
+        files1 = st.file_uploader(
+            "🖼️ Upload ảnh",
+            type=["png", "jpg", "jpeg"],
+            accept_multiple_files=True
+        )
+        # 2) Paste từ clipboard
         st.markdown("**Hoặc dán ảnh từ clipboard:**")
         paste_res = paste_image_button(label="📋 Dán ảnh", key="paste_img")
         if paste_res.image_data is not None:
+            # hiển thị ngay ảnh vừa paste
             st.image(paste_res.image_data, caption="Ảnh vừa dán", use_column_width=True)
+            # chuyển PIL.Image → BytesIO
             buf = BytesIO()
             paste_res.image_data.save(buf, format="PNG")
-            buf.name = "pasted.png"; buf.seek(0)
+            buf.name = "pasted.png"
+            buf.seek(0)
+            # thêm vào session list
             st.session_state.image_files.append(buf)
             st.success("✅ Đã dán ảnh từ clipboard!")
+
+    # 3) Hiển thị danh sách ảnh đã thêm & nút xoá
+    if st.session_state.image_files:
+        st.markdown("#### 📂 Ảnh đã thêm:")
+        for i, f in enumerate(st.session_state.image_files):
+            name = getattr(f, "name", f"image_{i}.png")
+            col_img, col_btn = st.columns([4,1])
+            with col_img:
+                st.image(f, width=120)
+                st.caption(name)
+            with col_btn:
+                if st.button("❌", key=f"del_img_{i}"):
+                    st.session_state.image_files.pop(i)
+                    st.experimental_rerun()
 
     if st.button("🚀 Phân tích"):
         if captcha_ans != st.session_state.captcha_a:
