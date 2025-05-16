@@ -127,7 +127,7 @@ def text_to_speech(text: str) -> str:
 
 # —————————————— Main UI ——————————————
 if not st.session_state.show_report:
-        col_icon, col_title = st.columns([0.05, 0.95])
+    col_icon, col_title = st.columns([0.05, 0.95])
     with col_icon:
         st.image(
             "pic/iconfisc.png",  # đường dẫn tới icon giấy của bạn
