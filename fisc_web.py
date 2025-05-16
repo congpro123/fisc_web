@@ -6,6 +6,7 @@ import os
 import tempfile
 import requests
 import streamlit.components.v1 as components
+from streamlit_paste_button import paste
 
 st.set_page_config(
     page_title="Phân tích thông tin xấu độc", 
@@ -169,6 +170,17 @@ if not st.session_state.show_report:
             with st.spinner("⏳ Đang phân tích..."):
                 st.session_state.result = analyze(content, image_files)
                 st.session_state.ready = True
+    # ---- Paste ảnh từ clipboard ----
+    st.markdown("**Hoặc** dán ảnh trực tiếp từ clipboard vào đây:")
+    pasted = paste(key="paste_img")
+    if pasted is not None:
+        # Nếu chưa có list trong session, khởi tạo
+        if "image_files" not in st.session_state:
+            st.session_state.image_files = []
+        # Thêm ảnh vừa paste vào danh sách
+        st.session_state.image_files.append(pasted)
+        st.success("✅ Đã dán ảnh từ clipboard!")
+        st.image(pasted, caption="Ảnh vừa paste", use_column_width=True)
 
     if st.session_state.ready:
         st.markdown("### 📋 Kết quả phân loại:")
