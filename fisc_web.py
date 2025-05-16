@@ -1,4 +1,3 @@
-```python
 import streamlit as st
 from streamlit_paste_button import paste_image_button
 import openai
@@ -221,5 +220,3 @@ else:
                 st.session_state.show_report=False
     with c2:
         if st.button("Huỷ"):
-            st.session_state.show_report=False
-```
