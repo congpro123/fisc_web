@@ -147,7 +147,7 @@ if not st.session_state.show_report:
             for f in uploaded:
                 st.session_state.image_files.append(f)
 
-    cap_col, btn_col = st.columns([1,18])
+    cap_col, btn_col = st.columns([1,15])
     with cap_col:
         captcha_ans = st.text_input(
             f"🔒 CAPTCHA: {st.session_state.captcha_q}",
