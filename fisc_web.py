@@ -124,9 +124,12 @@ def text_to_speech(text: str) -> str:
 
 # —————————————— Main UI ——————————————
 if not st.session_state.show_report:
-    col_icon, col_title = st.columns([0.1, 0.9])
+    col_icon, col_title = st.columns([0.05, 0.95])
     with col_icon:
-        st.image("pic/iconfisc.png", width=64)
+        st.image(
+            "pic/iconfisc.png",  # đường dẫn tới icon giấy của bạn
+            width=93               # điều chỉnh kích thước cho vừa
+        )
     with col_title:
         st.title("Phân tích thông tin xấu độc")
     st.markdown("Nhập nội dung hoặc upload/paste ảnh, trả lời CAPTCHA và nhấn **Phân tích**.")
