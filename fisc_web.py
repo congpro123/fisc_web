@@ -138,8 +138,11 @@ def analyze(content: str, image_files) -> str:
         return f"❌ Lỗi khi gọi API: {e}"
 
 def text_to_speech(text: str) -> str:
-    """Chuyển text sang mp3, trả về đường dẫn tạm thời."""
-    tts = gTTS(text=text, lang="vi")
+    """Chuyển text sang mp3, loại bỏ hết dấu * trước khi đọc."""
+    # Bước loại bỏ tất cả dấu * 
+    clean_text = text.replace("*", "")
+    # Tạo file TTS
+    tts = gTTS(text=clean_text, lang="vi")
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
     tts.save(tmp.name)
     return tmp.name
