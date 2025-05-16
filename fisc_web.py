@@ -144,16 +144,18 @@ if not st.session_state.show_report:
     with c1:
         content = st.text_area("✍️ Nhập nội dung", value=st.session_state.content, height=150)
     with c2:
-        # Upload
-        uploaded = st.file_uploader("🖼️ Upload ảnh", type=["png","jpg","jpeg"], accept_multiple_files=True)
-        # Khi upload mới, thêm vào state (không xóa các ảnh cũ)
+        # 1) Upload files
+        uploaded = st.file_uploader(
+            "🖼️ Upload ảnh",
+            type=["png","jpg","jpeg"],
+            accept_multiple_files=True
+        )
         if uploaded:
-            # uploaded is list
             for f in uploaded:
-                # tránh trùng lặp
-                if not any(getattr(x, 'name', '') == f.name for x in st.session_state.image_files):
+                if f.name not in st.session_state.uploaded_names:
+                    st.session_state.uploaded_names.append(f.name)
                     st.session_state.image_files.append(f)
-        # Paste
+        # 2) Paste from clipboard
         st.markdown("**Hoặc dán ảnh từ clipboard:**")
         paste_res = paste_image_button(label="📋 Dán ảnh", key="paste_img")
         if paste_res.image_data is not None:
@@ -162,35 +164,39 @@ if not st.session_state.show_report:
             st.session_state.image_files.append(buf)
             st.success("✅ Đã dán ảnh từ clipboard!")
 
-        # Hiển thị và cho xoá ảnh ngay dưới uploader
-        if st.session_state.image_files:
-            cols = st.columns(len(st.session_state.image_files))
-            for idx, f in enumerate(st.session_state.image_files):
-                with cols[idx]:
-                    st.image(f, width=100)
-                    if st.button("❌", key=f"del_{idx}"):
-                        st.session_state.image_files.pop(idx)
-                        break  # tránh lỗi indexing
+        # Display thumbnails & delete buttons
+        for idx, f in enumerate(st.session_state.image_files):
+            cols = st.columns([1,3,1])
+            with cols[1]:
+                st.image(f, width=100)
+            with cols[2]:
+                def _remove(i=idx):
+                    # also remove from uploaded_names if applicable
+                    name = getattr(st.session_state.image_files[i], 'name', None)
+                    st.session_state.image_files.pop(i)
+                    if name and name in st.session_state.uploaded_names:
+                        st.session_state.uploaded_names.remove(name)
+                st.button("❌", key=f"del_{idx}", on_click=_remove)
 
-    # Phân tích
+    # Analyze button
     if st.button("🚀 Phân tích"):
         if captcha_ans != st.session_state.captcha_a:
             st.error("❌ CAPTCHA sai, thử lại.")
         elif not content and not st.session_state.image_files:
             st.warning("⚠️ Nhập nội dung hoặc thêm ảnh.")
         else:
-            files = st.session_state.image_files
             st.session_state.content = content
             with st.spinner("Đang phân tích..."):
-                st.session_state.result = analyze(content, files)
+                st.session_state.result = analyze(content, st.session_state.image_files)
                 st.session_state.ready = True
-            # Reset CAPTCHA
+            # reset captcha
             a, b = random.randint(1, 9), random.randint(1, 9)
             st.session_state.captcha_q = f"{a} + {b}"
             st.session_state.captcha_a = str(a + b)
             if "captcha_input" in st.session_state:
                 del st.session_state["captcha_input"]
 
+    # Show results
     if st.session_state.ready:
         st.markdown("### 📋 Kết quả:")
         st.write(st.session_state.result)
@@ -201,7 +207,7 @@ if not st.session_state.show_report:
             st.session_state.show_report = True
 
 else:
-    # Form Báo Cáo
+    # Report Form
     st.title("📝 Form Báo Cáo")
     report_type = st.selectbox("Loại báo cáo", [
         "Tin giả","Xuyên tạc lịch sử","Kích động bạo lực",
@@ -211,21 +217,25 @@ else:
     c1, c2 = st.columns(2)
     with c1:
         if st.button("Gửi"):
-            data={"type":report_type,"article":st.session_state.content,
-                  "extra_info":extra,"classification":st.session_state.result}
-            files=[]
+            data = {
+                "type": report_type,
+                "article": st.session_state.content,
+                "extra_info": extra,
+                "classification": st.session_state.result
+            }
+            files = []
             for f in st.session_state.image_files:
-                b=f.read()
-                files.append(("images",(f.name,b,"image/png")))
-                if hasattr(f,"seek"): f.seek(0)
+                b = f.read()
+                files.append(("images", (f.name, b, "image/png")))
+                if hasattr(f, "seek"): f.seek(0)
             try:
-                r=requests.post(ADMIN_ENDPOINT,data=data,files=files,timeout=10)
+                r = requests.post(ADMIN_ENDPOINT, data=data, files=files, timeout=10)
                 r.raise_for_status()
                 st.success("✅ Đã gửi báo cáo.")
             except Exception as e:
                 st.error(f"❌ Lỗi: {e}")
             finally:
-                st.session_state.show_report=False
+                st.session_state.show_report = False
     with c2:
         if st.button("Huỷ"):
-            st.session_state.show_report=False
+            st.session_state.show_report = False
