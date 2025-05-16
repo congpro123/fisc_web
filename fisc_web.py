@@ -150,24 +150,6 @@ if not st.session_state.show_report:
         if uploaded:
             for f in uploaded:
                 st.session_state.image_files.append(f)
-        # Paste from clipboard
-        st.markdown("**Hoặc dán ảnh từ clipboard:**")
-        paste_res = paste_image_button(label="📋 Dán ảnh", key="paste_img")
-        if paste_res.image_data is not None:
-            buf = BytesIO(); paste_res.image_data.save(buf, format="PNG")
-            buf.name = "pasted.png"; buf.seek(0)
-            st.session_state.image_files.append(buf)
-            st.success("✅ Đã dán ảnh từ clipboard!")
-
-        # Display thumbnails & delete buttons
-        for idx, f in enumerate(st.session_state.image_files):
-            cols = st.columns([1,3,1])
-            with cols[1]:
-                st.image(f, width=100)
-            with cols[2]:
-                if st.button("❌", key=f"del_{idx}"):
-                    st.session_state.image_files.pop(idx)
-                    break
 
     # Analyze button
     if st.button("🚀 Phân tích"):
