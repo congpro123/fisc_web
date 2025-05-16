@@ -2,4 +2,5 @@ streamlit
 gtts
 requests
 openai==0.28.0
-qrcode
+streamlit-dropzone
+qrcode[pil]
