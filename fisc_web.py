@@ -145,7 +145,14 @@ if not st.session_state.show_report:
         captcha_ans = st.text_input(f"🔒 CAPTCHA: {st.session_state.captcha_q}", key="captcha_input")
     with btn_col:
         analyze_clicked = st.button("🚀 Phân tích")
-
+        
+    left, middle, right = st.columns([1,2,1])
+    with left:
+        st.write("")   # giữ khoảng trống
+    with middle:
+        st.button("🚀 Phân tích")
+    with right:
+        st.write("")
     # Handle analyze
     if analyze_clicked:
         if captcha_ans != st.session_state.captcha_a:
