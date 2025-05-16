@@ -139,11 +139,18 @@ if not st.session_state.show_report:
                     st.session_state.image_files.pop(idx)
                     break
 
-    # CAPTCHA and Analyze on one row
     cap_col, btn_col = st.columns([1,19])
     with cap_col:
-        captcha_ans = st.text_input(f"🔒 CAPTCHA: {st.session_state.captcha_q}", key="captcha_input")
+        captcha_ans = st.text_input(
+            f"🔒 CAPTCHA: {st.session_state.captcha_q}",
+            key="captcha_input"
+        )
     with btn_col:
+        # tạo khoảng trống để đẩy nút xuống ngang với ô nhập CAPTCHA
+        st.markdown("<div style='padding-top: 30px'></div>", unsafe_allow_html=True)
+        # hoặc: 
+        # st.write("")
+        # st.write("")
         analyze_clicked = st.button("🚀 Phân tích")
 
     # Handle analyze
