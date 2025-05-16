@@ -140,7 +140,7 @@ if not st.session_state.show_report:
                     break
 
     # CAPTCHA and Analyze on one row
-    cap_col, btn_col = st.columns([1,10])
+    cap_col, btn_col = st.columns([1,15])
     with cap_col:
         captcha_ans = st.text_input(f"🔒 CAPTCHA: {st.session_state.captcha_q}", key="captcha_input")
     with btn_col:
