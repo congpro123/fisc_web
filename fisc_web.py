@@ -146,15 +146,6 @@ if not st.session_state.show_report:
         if uploaded:
             for f in uploaded:
                 st.session_state.image_files.append(f)
-        # Show thumbnails + delete
-        for idx, f in enumerate(st.session_state.image_files):
-            img_col, btn_col = st.columns([3,1])
-            with img_col:
-                st.image(f, width=100)
-            with btn_col:
-                if st.button("❌", key=f"del_{idx}"):
-                    st.session_state.image_files.pop(idx)
-                    break
 
     cap_col, btn_col = st.columns([1,19])
     with cap_col:
