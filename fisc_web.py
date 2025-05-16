@@ -1,4 +1,3 @@
-```python
 import streamlit as st
 import openai
 from gtts import gTTS
@@ -200,4 +199,3 @@ else:
     with c2:
         if st.button("Huỷ"):
             st.session_state.show_report = False
-```
