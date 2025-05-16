@@ -146,8 +146,13 @@ if not st.session_state.show_report:
     with c2:
         # Upload
         uploaded = st.file_uploader("🖼️ Upload ảnh", type=["png","jpg","jpeg"], accept_multiple_files=True)
+        # Khi upload mới, thêm vào state (không xóa các ảnh cũ)
         if uploaded:
-            st.session_state.image_files = uploaded
+            # uploaded is list
+            for f in uploaded:
+                # tránh trùng lặp
+                if not any(getattr(x, 'name', '') == f.name for x in st.session_state.image_files):
+                    st.session_state.image_files.append(f)
         # Paste
         st.markdown("**Hoặc dán ảnh từ clipboard:**")
         paste_res = paste_image_button(label="📋 Dán ảnh", key="paste_img")
@@ -158,14 +163,14 @@ if not st.session_state.show_report:
             st.success("✅ Đã dán ảnh từ clipboard!")
 
         # Hiển thị và cho xoá ảnh ngay dưới uploader
-        for idx, f in enumerate(st.session_state.image_files.copy()):
-            cols = st.columns([1, 10, 1])
-            with cols[1]:
-                st.image(f, width=100)
-            with cols[2]:
-                def _remove(i=idx):
-                    st.session_state.image_files.pop(i)
-                st.button("❌", key=f"del_{idx}", on_click=_remove)
+        if st.session_state.image_files:
+            cols = st.columns(len(st.session_state.image_files))
+            for idx, f in enumerate(st.session_state.image_files):
+                with cols[idx]:
+                    st.image(f, width=100)
+                    if st.button("❌", key=f"del_{idx}"):
+                        st.session_state.image_files.pop(idx)
+                        break  # tránh lỗi indexing
 
     # Phân tích
     if st.button("🚀 Phân tích"):
