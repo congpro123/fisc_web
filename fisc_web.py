@@ -167,6 +167,7 @@ if not st.session_state.show_report:
             key="captcha_input"
         )
     with btn_col:
+        st.markdown("<div style='padding-top: 28px'></div>", unsafe_allow_html=True)
         analyze_clicked = st.button("🚀 Phân tích")
 
     if analyze_clicked:
