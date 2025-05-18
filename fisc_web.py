@@ -45,7 +45,7 @@ if "captcha_q" not in st.session_state or st.session_state.captcha_reset:
 
 # --- Config & secrets ---
 ADMIN_ENDPOINT = "https://congpro.pythonanywhere.com/api/reports"
-client = OpenAI(api_key=st.secrets["openai"]["api_key"])
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 # --- Session defaults ---
 for key, default in {
     "content": "",
