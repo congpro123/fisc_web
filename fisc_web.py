@@ -5,15 +5,18 @@ import base64
 import os
 import tempfile
 import requests
-import streamlit.components.v1 as components
 import random
+import qrcode
+from io import BytesIO
 
+# --- Page config ---
 st.set_page_config(
-    page_title="Phân tích thông tin xấu độc", 
-    page_icon="pic/iconfisc.png",       # hoặc "static/my_logo.png"
+    page_title="Phân tích thông tin xấu độc",
+    page_icon="pic/iconfisc.png",
     layout="wide"
 )
 
+# --- PWA & iOS ---
 st.markdown(
     """
 <link rel="manifest" href="/manifest.json">
@@ -24,78 +27,38 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Khởi tạo session state cho phần hướng dẫn
-if "show_instructions" not in st.session_state:
-    st.session_state.show_instructions = False
+# --- State flags ---
+for flag in ("play_audio", "audio_embed", "captcha_reset", "show_instructions"):
+    if flag not in st.session_state:
+        st.session_state[flag] = False
 
-if st.button("Cài phần mềm về điện thoại"):
-    st.session_state.show_instructions = True
+# --- Audio state defaults ---
+if "audio_embed" not in st.session_state:
+    st.session_state.audio_embed = ""
 
-if st.session_state.show_instructions:
-    st.markdown("---")
-    # 1. Cho người dùng chọn thiết bị
-    device = st.radio("Chọn thiết bị của bạn:", ["iOS", "Android"])
-
-    if device == "iOS":
-        st.subheader("🛈 Hướng dẫn Thêm vào Màn hình chính (iOS)")
-        st.write("""
-        1. Nhấn nút **Chia sẻ** (biểu tượng ⬆️) ở dưới cùng Safari.  
-        2. Chọn **Thêm vào Màn hình chính**.  
-        3. Đặt tên (mặc định “Phân tích thông tin xấu độc”) rồi nhấn **Thêm**.
-        """)
-
-    else:  # Android
-        st.subheader("🛈 Tải và Cài APK (Android)")
-        apk_url = "http://raw.githubusercontent.com/congpro123/fisc_web/main/FISC.apk"  # đổi thành URL thật
-
-        # Nút tải APK
-        st.download_button(
-            label="⬇️ Tải APK về máy",
-            data=requests.get(apk_url).content,
-            file_name="FISC.apk",
-            mime="application/vnd.android.package-archive"
-        )
-
-        # Hướng dẫn cài đặt sau khi tải
-        st.write("Sau khi tải xong, bấm vào file **FISC.apk** để tiến hành cài app về máy.")
-
-        # Tạo QR code cho APK
-        import qrcode
-        from io import BytesIO
-
-        qr = qrcode.make(apk_url)
-        buf = BytesIO()
-        qr.save(buf, format="PNG")
-        st.image(buf.getvalue(), caption="Quét QR để tải APK", width=200)
-
-    # Nút đóng hướng dẫn
-    if st.button("Đã hiểu"):
-        st.session_state.show_instructions = False
-    st.markdown("---")
-
-# CAPTCHA setup
-if "captcha_q" not in st.session_state:
+# --- CAPTCHA init ---
+if "captcha_q" not in st.session_state or st.session_state.captcha_reset:
     a, b = random.randint(1, 9), random.randint(1, 9)
-    st.session_state.captcha_q = f"{a} + {b}" + " = ?"
+    st.session_state.captcha_q = f"{a} + {b} = ?"
     st.session_state.captcha_a = str(a + b)
+    st.session_state.captcha_reset = False
 
-# —————————————— CẤU HÌNH ——————————————
+# --- Config & secrets ---
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 ADMIN_ENDPOINT = "https://congpro.pythonanywhere.com/api/reports"
 
-# —————————————— Khởi tạo session state ——————————————
+# --- Session defaults ---
 for key, default in {
-    "result": "",
-    "ready": False,
     "content": "",
     "image_files": [],
+    "result": "",
+    "ready": False,
     "show_report": False
 }.items():
     if key not in st.session_state:
         st.session_state[key] = default
 
-# —————————————— Hàm phụ trợ ——————————————
-
+# --- Helper functions ---
 def analyze(content: str, image_files) -> str:
     """Gửi văn bản + ảnh lên GPT để phân loại theo HD 99-HD/BTGTW."""
     try:
@@ -138,45 +101,65 @@ def analyze(content: str, image_files) -> str:
         return f"❌ Lỗi khi gọi API: {e}"
 
 def text_to_speech(text: str) -> str:
-    """Chuyển text sang mp3, loại bỏ hết dấu * trước khi đọc."""
-    # Bước loại bỏ tất cả dấu * 
-    clean_text = text.replace("*", "")
-    # Tạo file TTS
-    tts = gTTS(text=clean_text, lang="vi")
+    clean = text.replace("*", "")
+    tts = gTTS(text=clean, lang="vi")
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
     tts.save(tmp.name)
     return tmp.name
 
-# —————————————— Giao diện Streamlit ——————————————
+# --- Mobile install instructions ---
+if st.button("Cài phần mềm về điện thoại"):
+    st.session_state.show_instructions = True
 
+if st.session_state.show_instructions:
+    st.markdown("---")
+    device = st.radio("Chọn thiết bị của bạn:", ["iOS", "Android"])
+    if device == "iOS":
+        st.subheader("🛈 Thêm vào Màn hình chính (iOS)")
+        st.write("""
+1. Nhấn **Chia sẻ** (biểu tượng ⬆️) dưới cùng Safari.  
+2. Chọn **Thêm vào Màn hình chính**.  
+3. Nhấn **Thêm**.
+""")
+    else:
+        st.subheader("🛈 Tải & Cài APK (Android)")
+        apk_url = "http://raw.githubusercontent.com/congpro123/fisc_web/main/FISC.apk"
+        st.download_button("⬇️ Tải APK về máy",
+            data=requests.get(apk_url).content,
+            file_name="FISC.apk",
+            mime="application/vnd.android.package-archive",
+        )
+        st.write("Sau khi tải, mở file **FISC.apk** để cài.")
+        qr = qrcode.make(apk_url)
+        buf = BytesIO(); qr.save(buf, "PNG")
+        st.image(buf.getvalue(), caption="Quét QR để tải APK", width=200)
+    if st.button("Đã hiểu"):
+        st.session_state.show_instructions = False
+    st.markdown("---")
+
+# --- Main analysis UI ---
 if not st.session_state.show_report:
+    # Header
+    c1, c2 = st.columns([0.05,0.95])
+    with c1: st.image("pic/iconfisc.png", width=64)
+    with c2: st.title("Phân tích thông tin xấu độc")
+    st.markdown("Nhập nội dung, upload ảnh, trả lời CAPTCHA rồi bấm **Phân tích**.")
 
-    col_icon, col_title = st.columns([0.05, 0.95])
-    with col_icon:
-        st.image(
-            "pic/iconfisc.png",  # đường dẫn tới icon giấy của bạn
-            width=93               # điều chỉnh kích thước cho vừa
-        )
-    with col_title:
-        st.title("Phân tích thông tin xấu độc")
-
-    st.markdown("Nhập nội dung hoặc upload ảnh, nhấn **Phân tích** rồi **Nghe** hoặc **Báo cáo**.")
-
-    col1, col2 = st.columns([2,1])
-    with col1:
+    # Content & images
+    c1, c2 = st.columns([2,1])
+    with c1:
         content = st.text_area(
-            "✍️ Nhập nội dung cần phân tích",
-            height=200,
-            value=st.session_state.content
+            "✍️ Nhập nội dung", st.session_state.content, height=200
         )
-    with col2:
-        image_files = st.file_uploader(
-            "🖼️ Upload ảnh (jpg/png)",
-            type=["jpg","jpeg","png"],
-            accept_multiple_files=True,
-            key="uploader"
+    with c2:
+        uploaded = st.file_uploader(
+            "🖼️ Upload ảnh", type=["png","jpg","jpeg"], accept_multiple_files=True
         )
+        if uploaded:
+            for f in uploaded:
+                st.session_state.image_files.append(f)
 
+    # CAPTCHA + Analyze on one row
     cap_col, btn_col = st.columns([1,16])
     with cap_col:
         captcha_ans = st.text_input(
@@ -184,100 +167,90 @@ if not st.session_state.show_report:
             key="captcha_input"
         )
     with btn_col:
-        # tạo khoảng trống để đẩy nút xuống ngang với ô nhập CAPTCHA
-        st.markdown("<div style='padding-top: 28px'></div>", unsafe_allow_html=True)
-        # hoặc: 
-        # st.write("")
-        # st.write("")
         analyze_clicked = st.button("🚀 Phân tích")
 
     if analyze_clicked:
-        if not content and not image_files:
-            st.warning("⚠️ Vui lòng nhập nội dung hoặc upload ảnh.")
+        # 1) CAPTCHA check
+        if not captcha_ans:
+            st.warning("⚠️ Vui lòng nhập CAPTCHA.")
+        elif captcha_ans != st.session_state.captcha_a:
+            st.error("❌ CAPTCHA không đúng.")
+        # 2) content/img
+        elif not content and not st.session_state.image_files:
+            st.warning("⚠️ Nhập nội dung hoặc upload ảnh.")
         else:
+            # reset audio flag
+            st.session_state.play_audio = False
+            # save inputs
             st.session_state.content = content
-            st.session_state.image_files = image_files
+            # analyze
             with st.spinner("⏳ Đang phân tích..."):
-                st.session_state.result = analyze(content, image_files)
+                st.session_state.result = analyze(content, st.session_state.image_files)
                 st.session_state.ready = True
+            # reset CAPTCHA
+            st.session_state.captcha_reset = True
+            if "captcha_input" in st.session_state:
+                del st.session_state["captcha_input"]
 
+    # show result
     if st.session_state.ready:
         st.markdown("### 📋 Kết quả phân loại:")
         st.write(st.session_state.result)
-    
-        # Nút nghe
+
+        # nghe kết quả
         if st.button("🔊 Nghe kết quả"):
-            # 1) Sinh file MP3 tạm
-            mp3_path = text_to_speech(st.session_state.result)
-            # 2) Đọc bytes và encode Base64
-            audio_bytes = open(mp3_path, "rb").read()
-            b64 = base64.b64encode(audio_bytes).decode()
-            # 3) Nhúng thẳng <audio> với data URI
-            st.markdown(
-                f"""
-                <audio controls style="width:100%;">
-                  <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
-                  Trình duyệt của bạn không hỗ trợ audio.
-                </audio>
-                """,
-                unsafe_allow_html=True
+            mp3 = text_to_speech(st.session_state.result)
+            data = open(mp3,"rb").read()
+            b64 = base64.b64encode(data).decode()
+            st.session_state.audio_embed = (
+                f"<audio controls style='width:100%;'>"
+                f"<source src='data:audio/mp3;base64,{b64}' type='audio/mp3'>"
+                "Trình duyệt không hỗ trợ audio."
+                "</audio>"
             )
-    
-        # Nút Báo cáo
+            st.session_state.play_audio = True
+
+        if st.session_state.play_audio:
+            st.markdown(st.session_state.audio_embed, unsafe_allow_html=True)
+
+        # báo cáo
         if st.button("📝 Báo cáo"):
             st.session_state.show_report = True
 
+# --- Report form ---
 else:
-    # Form Báo Cáo
     st.title("📝 Form Báo Cáo")
-    st.markdown("Chọn loại, thêm thông tin và gửi về server quản trị.")
+    st.markdown("Chọn loại, thêm thông tin và gửi về server.")
 
     with st.form("report_form"):
-        report_type = st.selectbox(
-            "Loại báo cáo",
-            options=[
-                "Tin giả", "Xuyên tạc lịch sử", "Kích động bạo lực",
-                "Chia rẽ dân tộc", "Xúc phạm tổ chức/nhân vật", "Thông tin sai sự thật"
-            ]
-        )
-        extra_info = st.text_area(
-            "🔎 Thông tin bổ sung",
-            height=150
-        )
-
-        col_a, col_b = st.columns(2)
-        with col_a:
-            submitted = st.form_submit_button("Gửi")
-        with col_b:
-            cancelled = st.form_submit_button("Huỷ")
+        report_type = st.selectbox("Loại báo cáo", [
+            "Tin giả","Xuyên tạc lịch sử","Kích động bạo lực",
+            "Chia rẽ dân tộc","Xúc phạm tổ chức/nhân vật","Thông tin sai sự thật"
+        ])
+        extra = st.text_area("🔎 Thông tin bổ sung", height=150)
+        c1,c2 = st.columns(2)
+        with c1: submitted = st.form_submit_button("Gửi")
+        with c2: cancelled = st.form_submit_button("Huỷ")
 
     if cancelled:
-        # Trở về màn phân tích
         st.session_state.show_report = False
-
     if submitted:
-        # Chuẩn bị payload
-        data = {
+        payload = {
             "type": report_type,
             "article": st.session_state.content,
-            "extra_info": extra_info,
+            "extra_info": extra,
             "classification": st.session_state.result
         }
-        files = []
-        for file in st.session_state.image_files:
-            file_bytes = file.read()
-            files.append((
-                "images",
-                (file.name, file_bytes, file.type)
-            ))
-            file.seek(0)
-
+        files=[]
+        for f in st.session_state.image_files:
+            b = f.read()
+            files.append(("images",(f.name,b,f.type)))
+            f.seek(0)
         try:
-            r = requests.post(ADMIN_ENDPOINT, data=data, files=files, timeout=10)
+            r = requests.post(ADMIN_ENDPOINT,data=payload,files=files,timeout=10)
             r.raise_for_status()
-            st.success("✅ Đã gửi báo cáo lên hệ thống quản trị.")
+            st.success("✅ Đã gửi báo cáo lên hệ thống.")
         except Exception as e:
-            st.error(f"❌ Không gửi được: {e}")
+            st.error(f"❌ Lỗi gửi: {e}")
         finally:
-            # Quay lại màn phân tích (giữ nguyên kết quả)
             st.session_state.show_report = False
