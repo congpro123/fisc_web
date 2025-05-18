@@ -204,14 +204,26 @@ if not st.session_state.show_report:
     if st.session_state.ready:
         st.markdown("### 📋 Kết quả phân loại:")
         st.write(st.session_state.result)
-
+    
         # Nút nghe
         if st.button("🔊 Nghe kết quả"):
+            # 1) Sinh file MP3 tạm
             mp3_path = text_to_speech(st.session_state.result)
+            # 2) Đọc bytes và encode Base64
             audio_bytes = open(mp3_path, "rb").read()
-            st.audio(audio_bytes, format="audio/mp3")
-
-        # Nút Báo cáo chuyển qua form báo cáo
+            b64 = base64.b64encode(audio_bytes).decode()
+            # 3) Nhúng thẳng <audio> với data URI
+            st.markdown(
+                f"""
+                <audio controls style="width:100%;">
+                  <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+                  Trình duyệt của bạn không hỗ trợ audio.
+                </audio>
+                """,
+                unsafe_allow_html=True
+            )
+    
+        # Nút Báo cáo
         if st.button("📝 Báo cáo"):
             st.session_state.show_report = True
 
