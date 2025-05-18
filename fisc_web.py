@@ -194,6 +194,8 @@ if not st.session_state.show_report:
     if analyze_clicked:
         if not content and not image_files:
             st.warning("⚠️ Vui lòng nhập nội dung hoặc upload ảnh.")
+        else if not captcha_ans:
+            st.warning("⚠️ Vui lòng nhập CAPTCHA.")
         else:
             st.session_state.content = content
             st.session_state.image_files = image_files
