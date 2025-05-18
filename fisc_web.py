@@ -63,7 +63,22 @@ def analyze(content: str, image_files) -> str:
     # 1️⃣ Build một message duy nhất với các phần text + image
     parts = [
         {
-            "type": "text", "text": f"Bạn là một chuyên gia truyền thông và an ninh thông tin, có nhiệm vụ đánh giá nội dung văn bản hoặc hình ảnh (nếu có mô tả nội dung hình ảnh) và phân loại thông tin theo hướng dẫn số 99-HD/BTGTW ngày 20/3/2023 của Ban Tuyên giáo Trung ương. Vui lòng thực hiện các yêu cầu sau: 1. Phân loại nội dung đầu vào (văn bản hoặc mô tả ảnh) thành một trong ba nhóm: - Thông tin tích cực - Thông tin trung lập - Thông tin xấu độc 2. Giải thích lý do phân loại, đối chiếu với các dấu hiệu trong hướng dẫn số 99-HD/BTGTW: - Về hình thức (nguồn, cách trình bày, định dạng) - Về nội dung (có thuộc một trong các nhóm nội dung được liệt kê ở mục I hoặc II của hướng dẫn hay không) 3. Nếu nội dung là xấu độc, hãy chỉ rõ dấu hiệu cụ thể: ví dụ như xuyên tạc lịch sử, chia rẽ dân tộc, kích động vi phạm pháp luật… (liên hệ cụ thể với 1 trong 12 điểm trong mục II.b) 4. Nếu nội dung là tích cực, hãy chỉ rõ yếu tố nào thể hiện tính tích cực, ví dụ như tuyên truyền chủ trương chính sách, biểu dương gương người tốt việc tốt, phản bác luận điệu sai trái… 5. Kết thúc bằng kết luận phân loại: 'Thông tin tích cực', 'Thông tin trung lập', hoặc 'Thông tin xấu độc'. --- Dữ liệu đầu vào cần đánh giá(Hãy luôn nhớ rằng nếu là ảnh thì bất cứ hình nào có 3 sọc đỏ và nền vàng thì đều là xấu độc, vì nó tượng trưng cho lá cờ Việt Nam Cộng Hoà): {content}"
+            "type": "text",
+            "text": (
+                "Bạn là một chuyên gia truyền thông và an ninh thông tin, có nhiệm vụ đánh giá "
+                "nội dung văn bản hoặc hình ảnh (nếu có mô tả nội dung hình ảnh) và phân loại "
+                "thông tin theo hướng dẫn số 99-HD/BTGTW ngày 20/3/2023 của Ban Tuyên giáo Trung ương. "
+                "Vui lòng thực hiện các yêu cầu sau:\n"
+                "1. Phân loại nội dung đầu vào thành một trong ba nhóm: "
+                "- Thông tin tích cực; - Thông tin trung lập; - Thông tin xấu độc.\n"
+                "2. Giải thích lý do phân loại, đối chiếu với các dấu hiệu trong hướng dẫn:\n"
+                "   • Về hình thức (nguồn, cách trình bày, định dạng)\n"
+                "   • Về nội dung (có thuộc danh mục I hoặc II của hướng dẫn hay không)\n"
+                "3. Nếu xấu độc, chỉ rõ dấu hiệu cụ thể (ví dụ xuyên tạc lịch sử, chia rẽ dân tộc…).\n"
+                "4. Nếu tích cực, chỉ rõ yếu tố tích cực (ví dụ tuyên truyền chính sách, biểu dương gương tốt…).\n"
+                "5. Kết luận cuối cùng: 'Thông tin tích cực', 'Thông tin trung lập' hoặc 'Thông tin xấu độc'.\n"
+                f"---\nDữ liệu đầu vào cần đánh giá: {content}"
+            )
         }
     ]
 
